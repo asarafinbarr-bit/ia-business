@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>IA TrainLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#12111A;--ink2:#3D3A52;--ink3:#8B87A0;
+  --bg:#F4F2FA;--surface:#fff;
+  --purple:#7B5EA7;--purple-d:#4E3880;--purple-l:#EDE7F6;--purple-ll:#F7F4FD;
+  --green:#2ECC8F;--green-l:#E6FAF3;
+  --amber:#F5A623;--amber-l:#FEF6E6;
+  --red:#E8445A;--red-l:#FDEDF0;
+  --r-lg:20px;--r-md:14px;--r-sm:10px;
+  --sh:0 8px 32px rgba(78,56,128,.10);--sh-sm:0 2px 10px rgba(78,56,128,.08)
+}
+html,body{height:100%;font-family:'Heebo',sans-serif;background:var(--bg);color:var(--ink);direction:rtl;-webkit-font-smoothing:antialiased}
+button{font-family:'Heebo',sans-serif;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.hdr{background:var(--ink);padding:14px 18px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:36px;height:36px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.hdr-brand h1{color:#fff;font-size:16px;font-weight:800;margin:0}
+.hdr-brand p{color:rgba(255,255,255,.45);font-size:10px;margin:1px 0 0}
+.hdr-actions{display:flex;gap:6px}
+.hdr-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)!important;border-radius:20px;padding:5px 12px;color:rgba(255,255,255,.85);font-size:11px;font-weight:500}
+.tabs{background:var(--ink);display:flex;padding:0 14px 13px;gap:4px;overflow-x:auto}
+.tab{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5);background:transparent;white-space:nowrap}
+.tab.on{background:var(--purple);color:#fff}
+.main{padding:14px 14px 100px;max-width:520px;margin:0 auto}
+.banner{background:linear-gradient(135deg,var(--purple-d),var(--purple));border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 24px rgba(78,56,128,.28)}
+.banner .bl h2{color:#fff;font-size:12px;font-weight:500;opacity:.8;margin:0}
+.banner .bl .bd{color:#fff;font-size:21px;font-weight:900;letter-spacing:-1px;margin-top:2px}
+.banner .br{text-align:center}
+.banner .br .bn{color:#fff;font-size:36px;font-weight:900;line-height:1}
+.banner .br .bl2{color:rgba(255,255,255,.65);font-size:10px;margin-top:2px}
+.sec-title{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.8px;text-transform:uppercase;margin:14px 0 9px;display:flex;align-items:center;justify-content:space-between}
+.add-btn{background:var(--purple);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700}
+/* CLIENT CARD */
+.card{background:var(--surface);border-radius:var(--r-lg);margin-bottom:10px;box-shadow:var(--sh-sm);overflow:hidden;border:1px solid rgba(123,94,167,.06)}
+.card-body{display:flex;align-items:center;padding:13px 14px;gap:12px;width:100%}
+.card-open{background:none;border:none!important;flex:1;display:flex;align-items:center;gap:12px;text-align:right;padding:0;min-width:0}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;color:#fff}
+.cinfo{flex:1;min-width:0}
+.cname{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.cmeta{font-size:11px;color:var(--ink3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--ink3);opacity:.4;flex-shrink:0}
+.cnote{font-size:10px;color:var(--amber);margin-top:3px;font-weight:600;text-align:right}
+.cpay{font-size:10px;color:var(--purple);margin-top:2px;font-weight:600;text-align:right}
+.prog-wrap{padding:0 14px 10px}
+.prog-track{height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .6s}
+.log-btn{width:44px;height:44px;border-radius:50%;background:var(--purple);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(123,94,167,.4);transition:transform .15s;min-width:44px}
+.log-btn:active{transform:scale(.9)}
+.log-btn.warn{background:var(--amber);box-shadow:0 4px 14px rgba(245,166,35,.4)}
+.log-btn.danger{background:var(--red);box-shadow:0 4px 14px rgba(232,68,90,.4)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.b-ok{background:var(--green-l);color:#1A9B6C}
+.b-warn{background:var(--amber-l);color:#C07D00}
+.b-danger{background:var(--red-l);color:#C0213A}
+.b-online{background:var(--purple-ll);color:var(--purple-d)}
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--ink);color:#fff;padding:11px 20px;border-radius:40px;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);animation:ti .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.toast.out{animation:to .25s ease forwards}
+@keyframes ti{from{opacity:0;transform:translateY(12px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes to{from{opacity:1}to{opacity:0;transform:translateY(8px)}}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(18,17,26,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
+.overlay.on{opacity:1;pointer-events:all}
+.sheet{background:var(--surface);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:20px 18px 34px;width:100%;max-width:520px;transform:translateY(40px);transition:transform .28s cubic-bezier(.34,1.2,.64,1);max-height:88vh;overflow-y:auto}
+.overlay.on .sheet{transform:none}
+.handle{width:40px;height:4px;background:#E0DDF0;border-radius:2px;margin:0 auto 16px}
+.sheet h2{font-size:17px;font-weight:800;color:var(--ink);margin:0 0 4px}
+.sub{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.sess-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.sess-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg);border-radius:var(--r-sm);font-size:13px}
+.sess-num{font-weight:700;color:var(--purple);min-width:26px}
+.del-sess{width:24px;height:24px;border-radius:50%;background:var(--red-l);color:var(--red);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.act-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0}
+.act-btn{padding:9px 4px;border-radius:var(--r-sm);font-size:12px;font-weight:600}
+.fg{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.fg input,.fg select,.fg textarea{padding:11px 13px;border-radius:var(--r-sm);border:1.5px solid #e0daea;font-family:'Heebo',sans-serif;font-size:14px;direction:rtl;background:#fff;outline:none;width:100%}
+.fg input:focus,.fg select:focus{border-color:var(--purple)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn-p{width:100%;padding:13px;background:var(--purple);color:#fff;border-radius:var(--r-md);font-size:15px;font-weight:700;margin-top:12px}
+.btn-d{width:100%;padding:11px;background:var(--red-l);color:var(--red);border-radius:var(--r-md);font-size:13px;font-weight:600;margin-top:7px}
+.btn-g{width:100%;padding:11px;background:var(--green-l);color:#1A9B6C;border-radius:var(--r-md);font-size:13px;font-weight:600;margin-top:7px}
+.btn-c{width:100%;padding:13px;background:var(--bg);color:var(--ink2);border-radius:var(--r-md);font-size:14px;font-weight:600;margin-top:8px}
+.btn-w{width:100%;padding:9px;background:var(--purple-ll);color:var(--purple-d);border-radius:var(--r-sm);font-size:12px;font-weight:600;margin-bottom:10px}
+/* HISTORY / ALERTS */
+.hday{margin-bottom:14px}
+.hday-hdr{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:8px}
+.hday-hdr::after{content:'';flex:1;height:1px;background:var(--bg)}
+.hentry{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--surface);border-radius:var(--r-sm);margin-bottom:5px;box-shadow:var(--sh-sm);font-size:13px}
+.al-card{background:var(--surface);border-radius:var(--r-md);padding:14px;margin-bottom:9px;border-right:4px solid;box-shadow:var(--sh-sm);display:flex;align-items:center;gap:12px}
+.al-card.w{border-color:var(--amber)}.al-card.d{border-color:var(--red)}
+/* REPORT */
+.rc{background:var(--surface);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;box-shadow:var(--sh-sm)}
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{text-align:center;background:var(--purple-ll);border-radius:var(--r-md);padding:12px}
+.stat .n{font-size:22px;font-weight:900;color:var(--purple)}
+.stat .l{font-size:11px;color:var(--ink3);margin-top:2px}
+/* EMPTY */
+.empty{text-align:center;padding:46px 20px;color:var(--ink3)}
+.empty .ei{font-size:46px;margin-bottom:10px;opacity:.5}
+/* DATE PICKER */
+.dp-wrap{display:none;position:fixed;inset:0;background:rgba(18,17,26,.5);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.dp-wrap.on{display:flex}
+.dp-box{background:var(--surface);border-radius:var(--r-lg);padding:22px;width:290px;box-shadow:var(--sh)}
+.dp-box h3{font-size:15px;font-weight:700;margin:0 0 14px}
+.dp-box input[type=date]{width:100%;padding:11px 13px;border-radius:var(--r-sm);border:2px solid var(--purple-l);font-family:'Heebo',sans-serif;font-size:14px;outline:none;margin-bottom:12px}
+.dp-row{display:flex;gap:8px}
+.dp-row button{flex:1;padding:11px;border-radius:var(--r-sm);font-size:13px;font-weight:600}
+.dp-cancel{background:var(--bg);color:var(--ink2)}
+.dp-ok{background:var(--purple);color:#fff}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--purple-l);border-radius:2px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">💪</div>
+    <div>
+      <h1>IA TrainLog</h1>
+      <p id="syncStatus">מתחבר...</p>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" onclick="openDatePicker()" id="headerDate">היום</button>
+    <button class="hdr-btn" onclick="exportBackup()">💾</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('log',this)">📋 רישום</button>
+  <button class="tab" onclick="switchTab('history',this)">📅 היסטוריה</button>
+  <button class="tab" onclick="switchTab('alerts',this)">⚠️ התראות</button>
+  <button class="tab" onclick="switchTab('leads',this)">📥 פניות</button>
+  <button class="tab" onclick="switchTab('report',this)">📊 דוח</button>
+</div>
+
+<div class="main">
+  <div id="tab-log">
+    <div class="banner">
+      <div class="bl"><h2>אימונים שנרשמו</h2><div class="bd" id="bannerDate"></div></div>
+      <div class="br"><div class="bn" id="todayCount">0</div><div class="bl2">היום</div></div>
+    </div>
+    <div class="sec-title">
+      מתאמנות פעילות
+      <button class="add-btn" onclick="openAddClient()">+ מתאמן/ת חדש/ה</button>
+    </div>
+    <div id="clientCards"></div>
+  </div>
+  <div id="tab-history" style="display:none"><div class="sec-title">כל האימונים</div><div id="historyList"></div></div>
+  <div id="tab-alerts" style="display:none"><div class="sec-title">התראות</div><div id="alertsList"></div></div>
+  <div id="tab-leads" style="display:none">
+    <div class="sec-title">פניות</div>
+    <button class="btn-p" onclick="openModal('addLeadModal')" style="margin-bottom:14px">+ פנייה חדשה</button>
+    <div id="leadsList"></div>
+  </div>
+  <div id="tab-report" style="display:none">
+    <div class="sec-title">דוח חודשי</div>
+    <div id="reportContent"></div>
+    <button class="btn-p" onclick="exportMonthlyReport()">📥 ייצוא Excel</button>
+    <button class="btn-g" onclick="sendMonthlyEmail()">📧 שלח למייל</button>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- SESSIONS -->
+<div class="overlay" id="sessionsModal" onclick="if(event.target===this)closeModal('sessionsModal')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2 id="mTitle"></h2>
+    <div class="sub" id="mSub"></div>
+    <div id="mPay" style="padding:9px 13px;background:var(--purple-ll);border-radius:var(--r-sm);font-size:13px;margin-bottom:6px"></div>
+    <div id="mEst" style="padding:7px 13px;background:var(--green-l);border-radius:var(--r-sm);font-size:12px;color:#1A9B6C;margin-bottom:6px;display:none"></div>
+    <div id="mNote" style="padding:7px 13px;background:var(--amber-l);border-radius:var(--r-sm);font-size:12px;color:#C07D00;margin-bottom:6px;display:none"></div>
+    <div class="act-grid">
+      <button class="act-btn" style="background:var(--purple-l);color:var(--purple-d)" onclick="editCurrentClient()">✏️ עריכה</button>
+      <button class="act-btn" style="background:var(--green-l);color:#1A9B6C" onclick="newPkgCurrentClient()">📦 חבילה חדשה</button>
+      <button class="act-btn" style="background:var(--amber-l);color:#C07D00" onclick="payCurrentClient()">💳 תשלום</button>
+    </div>
+    <button class="btn-w" onclick="exportClientExcel()">📊 ייצוא Excel אישי</button>
+    <div class="sess-list" id="sessList"></div>
+    <button class="btn-c" onclick="closeModal('sessionsModal')">סגירה</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT CLIENT -->
+<div class="overlay" id="clientModal" onclick="if(event.target===this)closeModal('clientModal')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2 id="cmTitle">מתאמן/ת חדש/ה</h2>
+    <div class="fg">
+      <input id="cf_name" placeholder="שם מלא" />
+      <div class="fr">
+        <select id="cf_pkg" onchange="onPkgChange()">
+          <option value="8">8 אימונים – ₪1,600</option>
+          <option value="24" selected>24 אימונים – ₪4,440</option>
+          <option value="0">ליווי מרחוק – ₪450/חודש</option>
+          <option value="custom">מותאם אישית</option>
+        </select>
+        <select id="cf_freq">
+          <option value="1×/שבוע">1× בשבוע</option>
+          <option value="2×/שבוע" selected>2× בשבוע</option>
+          <option value="3×/שבוע">3× בשבוע</option>
+          <option value="4×/שבוע">4× בשבוע</option>
+          <option value="5×/שבוע">5× בשבוע</option>
+          <option value="אונליין">אונליין</option>
+        </select>
+      </div>
+      <input id="cf_customPkg" placeholder="מספר אימונים" type="number" style="display:none" />
+      <div class="fr">
+        <input id="cf_totalPrice" placeholder="מחיר כולל ₪" type="number" />
+        <input id="cf_paid" placeholder="שולם עד כה ₪" type="number" />
+      </div>
+      <input id="cf_payNote" placeholder="הערת תשלום (למשל: 1,480₪/חודש · תשלום 1/3 · חיוב אחרון אוגוסט)" />
+      <input id="cf_note" placeholder="הערה כללית" />
+      <select id="cf_color">
+        <option value="#7B5EA7">סגול</option>
+        <option value="#E8445A">אדום</option>
+        <option value="#3498DB">כחול</option>
+        <option value="#2ECC8F">ירוק</option>
+        <option value="#F5A623">כתום</option>
+        <option value="#9B59B6">סגול כהה</option>
+        <option value="#1ABC9C">טורקיז</option>
+        <option value="#E67E22">כתום כהה</option>
+      </select>
+    </div>
+    <button class="btn-p" onclick="saveClient()" id="cmSaveBtn">שמירה</button>
+    <button class="btn-d" onclick="deleteClient()" id="cmDelBtn" style="display:none">🗑️ מחיקה</button>
+    <button class="btn-c" onclick="closeModal('clientModal')">ביטול</button>
+  </div>
+</div>
+
+<!-- NEW PACKAGE -->
+<div class="overlay" id="newPkgModal" onclick="if(event.target===this)closeModal('newPkgModal')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2>📦 חבילה חדשה</h2>
+    <div class="sub" id="npSub"></div>
+    <div class="fg">
+      <select id="np_pkg" onchange="onNpPkgChange()">
+        <option value="8">8 אימונים – ₪1,600</option>
+        <option value="24" selected>24 אימונים – ₪4,440</option>
+        <option value="custom">מותאם אישית</option>
+      </select>
+      <input id="np_customPkg" placeholder="מספר אימונים" type="number" style="display:none" />
+      <div class="fr">
+        <input id="np_totalPrice" placeholder="מחיר כולל ₪" type="number" />
+        <input id="np_paid" placeholder="שולם עד כה ₪" type="number" />
+      </div>
+      <input id="np_payNote" placeholder="הערת תשלום" />
+    </div>
+    <button class="btn-p" onclick="saveNewPackage()">פתיחת חבילה חדשה</button>
+    <button class="btn-c" onclick="closeModal('newPkgModal')">ביטול</button>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div class="overlay" id="paymentModal" onclick="if(event.target===this)closeModal('paymentModal')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2>💳 עדכון תשלום</h2>
+    <div class="sub" id="pmSub"></div>
+    <div class="fg">
+      <input id="pm_amount" placeholder="סכום שנוסף ₪" type="number" />
+      <input id="pm_note" placeholder="הערת תשלום מעודכנת (אופציונלי)" />
+    </div>
+    <button class="btn-p" onclick="savePayment()">עדכון</button>
+    <button class="btn-c" onclick="closeModal('paymentModal')">ביטול</button>
+  </div>
+</div>
+
+<!-- LEAD MODAL -->
+<div class="overlay" id="addLeadModal" onclick="if(event.target===this)closeModal('addLeadModal')">
+  <div class="sheet">
+    <div class="handle"></div>
+    <h2>📥 פנייה חדשה</h2>
+    <div class="fg">
+      <input id="leadName" placeholder="שם מלא" />
+      <input id="leadPhone" placeholder="טלפון" type="tel" />
+      <select id="leadSource">
+        <option value="">מאיפה הגיע/ה?</option>
+        <option>פייסבוק</option><option>אינסטגרם</option><option>המלצה</option>
+        <option>אנטון</option><option>אורית</option><option>רשף</option><option>אחר</option>
+      </select>
+      <select id="leadStatus">
+        <option value="ליד חדש">ליד חדש</option>
+        <option value="נקבע היכרות">נקבע היכרות</option>
+        <option value="שילם היכרות">שילם היכרות 200₪</option>
+        <option value="סגר חבילה">סגר חבילה</option>
+        <option value="לא ממשיך">לא ממשיך</option>
+      </select>
+      <textarea id="leadNote" placeholder="הערות" rows="2" style="resize:none"></textarea>
+    </div>
+    <button class="btn-p" onclick="saveLead()">שמירה</button>
+    <button class="btn-c" onclick="closeModal('addLeadModal')">ביטול</button>
+  </div>
+</div>
+
+<!-- DATE PICKER -->
+<div class="dp-wrap" id="dpWrap">
+  <div class="dp-box">
+    <h3>📅 בחרי תאריך</h3>
+    <input type="date" id="dpInput">
+    <div class="dp-row">
+      <button class="dp-cancel" onclick="closeDatePicker()">ביטול</button>
+      <button class="dp-ok" onclick="confirmDate()">אישור</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const app = initializeApp({
+  apiKey:"AIzaSyACMOh2RTaXldBl9jC-Rsu_Eq4nwkhXlYU",
+  authDomain:"ia-trainlog.firebaseapp.com",
+  databaseURL:"https://ia-trainlog-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"ia-trainlog",storageBucket:"ia-trainlog.firebasestorage.app",
+  messagingSenderId:"684659114433",
+  appId:"1:684659114433:web:1609430378058054f36f40"
+});
+const db = getDatabase(app);
+const dbRef = ref(db,'inbar/trainlog');
+window._fbSet = d => set(dbRef, d);
+window._fbListen = cb => onValue(dbRef, s => cb(s.val()));
+window._fbListen(val => {
+  if (val) {
+    window.DB = val;
+    if (!window.DB.leads) window.DB.leads = [];
+    if (!window.DB.payments) window.DB.payments = [];
+  } else {
+    window.DB = window._defaultDB();
+    window._fbSet(window.DB);
+  }
+  document.getElementById('syncStatus').textContent = 'מסונכרן ✓';
+  localStorage.setItem('ia_v5', JSON.stringify(window.DB));
+  renderCards();
+  renderAlerts();
+});
+</script>
+
+<script>
+emailjs.init('7Pvxbs-8DEB_JH2Uz');
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+window._defaultDB = () => ({
+  clients:[
+    {id:1,name:'נגה צוקרמן',freq:'3×/שבוע',pkg:24,done:15,color:'#7B5EA7',sessions:[],paid:4440,totalPrice:4440,payNote:'',note:''},
+    {id:2,name:'יעל אלהרר',freq:'1×/שבוע',pkg:24,done:23,color:'#E8445A',sessions:[],paid:4200,totalPrice:4200,payNote:'',note:'לא מחדשת · אחרון 26.6'},
+    {id:3,name:'איגור גרמן',freq:'2×/שבוע',pkg:24,done:15,color:'#3498DB',sessions:[],paid:3500,totalPrice:4200,payNote:'700₪/חודש · תשלום 5/6 · חיוב אחרון יולי',note:''},
+    {id:4,name:'יעל אלייה',freq:'אונליין',pkg:0,done:0,color:'#9B59B6',sessions:[],paid:450,totalPrice:450,payNote:'הו״ק 450₪ · ב-17 לחודש',note:'מקפיאה יולי-אוגוסט · חוזרת ספטמבר'},
+    {id:5,name:'רוני + רונית בן סימון',freq:'5×/שבוע',pkg:56,done:30,color:'#F5A623',sessions:[],paid:10000,totalPrice:10000,payNote:'',note:'צפי סיום ~20.7'},
+    {id:6,name:'נסרין',freq:'2×/שבוע',pkg:24,done:4,color:'#2ECC8F',sessions:[],paid:4320,totalPrice:4320,payNote:'',note:''},
+    {id:7,name:'אדם',freq:'1×/שבוע',pkg:8,done:2,color:'#E67E22',sessions:[],paid:800,totalPrice:1600,payNote:'תשלום 1/2 · 800₪ נשאר',note:'⚠️ לדרוש תשלום 800₪ ביולי'},
+    {id:8,name:'רונן גורלנד',freq:'2×/שבוע',pkg:7,done:4,color:'#1ABC9C',sessions:[],paid:1050,totalPrice:1050,payNote:'',note:'🔄 לדבר על חידוש ב-1.7'},
+    {id:9,name:'ליטל גולן',freq:'2×/שבוע',pkg:24,done:0,color:'#9B59B6',sessions:[],paid:1480,totalPrice:4440,payNote:'1,480₪/חודש · תשלום 1/3 · חיוב אחרון אוגוסט',note:'מתחילה שבוע הבא'},
+    {id:10,name:'מאי הררי',freq:'2×/שבוע',pkg:24,done:0,color:'#E8445A',sessions:[],paid:1480,totalPrice:4440,payNote:'1,480₪/חודש · תשלום 1/3 · חיוב אחרון אוגוסט',note:'מתחילה שבוע הבא'},
+  ],
+  leads:[],payments:[]
+});
+
+// Load from localStorage first
+try {
+  const s = localStorage.getItem('ia_v5');
+  if (s) { const p=JSON.parse(s); if(p&&p.clients) { window.DB=p; if(!window.DB.leads)window.DB.leads=[]; if(!window.DB.payments)window.DB.payments=[]; } }
+} catch(e) {}
+if (!window.DB) window.DB = window._defaultDB();
+
+let selectedDate = new Date();
+let currentIdx = null;
+let editingId = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const D=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const M=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const fmtDate = d => `${D[d.getDay()]} ${d.getDate()} ב${M[d.getMonth()]}`;
+const fmtS = iso => { const d=new Date(iso+'T12:00:00'); return `${d.getDate()}.${d.getMonth()+1}.${String(d.getFullYear()).slice(2)}`; };
+const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayISO = () => toISO(selectedDate);
+const initials = n => n.split(' ').map(w=>w[0]).join('').slice(0,2);
+const tdone = c => (c.done||0)+c.sessions.length;
+const est = c => {
+  const r=c.pkg-tdone(c); if(r<=0||!c.freq) return null;
+  const pw=parseInt(c.freq)||2; const weeks=Math.ceil(r/pw);
+  const d=new Date(); d.setDate(d.getDate()+weeks*7);
+  return `${d.getDate()} ${M[d.getMonth()]}`;
+};
+
+function save() {
+  localStorage.setItem('ia_v5', JSON.stringify(DB));
+  document.getElementById('syncStatus').textContent = 'מסנכרן...';
+  if (window._fbSet) window._fbSet(DB)
+    .then(()=>document.getElementById('syncStatus').textContent='מסונכרן ✓')
+    .catch(()=>document.getElementById('syncStatus').textContent='⚠️ שגיאה');
+}
+
+// ── RENDER CARDS ──────────────────────────────────────────────────────────────
+function renderCards() {
+  const el = document.getElementById('clientCards');
+  if (!el||!DB||!DB.clients) return;
+  const today = todayISO();
+  let cnt=0;
+  el.innerHTML = DB.clients.map((c,i) => {
+    const done=tdone(c), rem=c.pkg>0?c.pkg-done:null, pct=c.pkg>0?Math.min(100,done/c.pkg*100):0;
+    const todaySess=c.sessions.filter(s=>s.date===today).length;
+    if(todaySess>0) cnt++;
+    const owed=(c.totalPrice||0)-(c.paid||0);
+    const showDebt=owed>0&&!c.payNote;
+    let badge='',bc='';
+    if(c.pkg===0) badge='<span class="badge b-online">אונליין</span>';
+    else if(rem<=0){badge='<span class="badge b-danger">🚨 נגמרה</span>';bc='danger';}
+    else if(rem<=3){badge=`<span class="badge b-danger">⚠️ נשארו ${rem}</span>`;bc='danger';}
+    else if(rem<=6){badge=`<span class="badge b-warn">נשארו ${rem}</span>`;bc='warn';}
+    else badge=`<span class="badge b-ok">נשארו ${rem}</span>`;
+    const last=c.sessions.length>0?fmtS(c.sessions[c.sessions.length-1].date):'טרם';
+    return `<div class="card">
+      <div class="card-body">
+        <button class="card-open" onclick="openSessions(${i})">
+          <div class="avatar" style="background:${c.color}">${initials(c.name)}</div>
+          <div class="cinfo">
+            <div class="cname">${c.name}</div>
+            <div class="cmeta">
+              <span>${c.freq}</span>
+              ${c.pkg>0?`<span class="dot"></span><span>${done}/${c.pkg}</span>`:''}
+              <span class="dot"></span>${badge}
+              ${showDebt?`<span class="dot"></span><span style="color:var(--red);font-size:10px;font-weight:600">חוב ₪${owed.toLocaleString()}</span>`:''}
+            </div>
+            ${c.payNote?`<div class="cpay">💳 ${c.payNote}</div>`:''}
+            <div class="cmeta" style="margin-top:2px">
+              <span>אחרון: ${last}</span>
+              ${todaySess>0?'<span class="dot"></span><span style="color:var(--green);font-weight:600">✓ היום</span>':''}
+            </div>
+            ${c.note?`<div class="cnote">${c.note}</div>`:''}
+          </div>
+        </button>
+        <button class="log-btn ${bc}" onclick="doLog(${i})">+</button>
+      </div>
+      ${c.pkg>0?`<button onclick="openSessions(${i})" style="background:none;border:none;width:100%;padding:0;cursor:pointer"><div class="prog-wrap"><div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${pct>=90?'var(--red)':pct>=75?'var(--amber)':c.color}"></div></div></div></button>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('todayCount').textContent = cnt;
+  document.getElementById('bannerDate').textContent = fmtDate(selectedDate);
+  document.getElementById('headerDate').textContent = fmtDate(selectedDate);
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function doLog(i) {
+  if (!DB||!DB.clients||i>=DB.clients.length) { showToast('⏳ טוען...','var(--amber)'); return; }
+  const c=DB.clients[i];
+  if (!c.sessions) c.sessions=[];
+  const num=tdone(c)+1;
+  c.sessions.push({date:todayISO(),num});
+  save(); renderCards(); renderAlerts(); renderHistory();
+  const rem=c.pkg>0?c.pkg-tdone(c):null;
+  showToast(`✅ ${c.name} — אימון ${num}${c.pkg>0?' מתוך '+c.pkg:''}`,c.color);
+  if(rem!==null&&rem<=3&&rem>0) setTimeout(()=>showToast(`⚠️ נשארו ${rem} אימונים!`,'var(--amber)'),700);
+  if(rem===0) setTimeout(()=>showToast('🚨 החבילה נגמרה! זמן לחידוש.','var(--red)'),700);
+}
+
+// ── SESSIONS ──────────────────────────────────────────────────────────────────
+function openSessions(i) {
+  currentIdx=i; const c=DB.clients[i];
+  const done=tdone(c), rem=c.pkg>0?c.pkg-done:null;
+  document.getElementById('mTitle').textContent=c.name;
+  document.getElementById('mSub').textContent=c.pkg>0?`${done} בוצעו · ${rem} נשארו מתוך ${c.pkg}`:'ליווי חודשי';
+  const payDiv=document.getElementById('mPay');
+  if(c.totalPrice){
+    const owed=c.totalPrice-(c.paid||0);
+    payDiv.innerHTML=`💳 שולם: <strong>₪${(c.paid||0).toLocaleString()}</strong> מתוך ₪${c.totalPrice.toLocaleString()} ${owed>0?`· <span style="color:var(--red)">נשאר: ₪${owed.toLocaleString()}</span>`:'· <span style="color:var(--green)">✓ שולם</span>'}${c.payNote?`<br><span style="color:var(--ink3);font-size:11px">${c.payNote}</span>`:''}`;
+    payDiv.style.display='block';
+  } else payDiv.style.display='none';
+  const estDiv=document.getElementById('mEst');
+  if(c.pkg>0&&rem>0){const e=est(c);if(e){estDiv.textContent=`📅 צפי סיום: ${e}`;estDiv.style.display='block';}else estDiv.style.display='none';}
+  else estDiv.style.display='none';
+  const nd=document.getElementById('mNote');
+  if(c.note){nd.textContent=c.note;nd.style.display='block';}else nd.style.display='none';
+  const sl=document.getElementById('sessList');
+  sl.innerHTML=c.sessions.length===0
+    ?'<div style="text-align:center;padding:20px;color:var(--ink3);font-size:13px">אין אימונים רשומים עדיין</div>'
+    :[...c.sessions].reverse().map((s,ri)=>{
+        const realIdx=c.sessions.length-1-ri;
+        const d=new Date(s.date+'T12:00:00');
+        return `<div class="sess-row">
+          <span class="sess-num">#${s.num}</span>
+          <span style="flex:1;font-weight:500">${fmtS(s.date)}</span>
+          <span style="font-size:11px;color:var(--ink3)">${D[d.getDay()]}</span>
+          <button class="del-sess" onclick="delSess(${i},${realIdx})">✕</button>
+        </div>`;
+      }).join('');
+  openModal('sessionsModal');
+}
+
+function editCurrentClient(){closeModal('sessionsModal');openEditClient(currentIdx);}
+function newPkgCurrentClient(){closeModal('sessionsModal');openNewPkg(currentIdx);}
+function payCurrentClient(){closeModal('sessionsModal');openPayment(currentIdx);}
+function exportClientExcel(){
+  const c=DB.clients[currentIdx];
+  const data=[['שם','תאריך','יום','מספר אימון','חבילה']];
+  [...c.sessions].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    data.push([c.name,fmtS(s.date),D[d.getDay()],s.num,c.pkg||'אונליין']);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:20},{wch:12},{wch:10},{wch:12},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,c.name.slice(0,30));
+  XLSX.writeFile(wb,`${c.name}_אימונים.xlsx`);
+  showToast(`📊 ייצוא ${c.name}`,'var(--green)');
+  closeModal('sessionsModal');
+}
+
+function delSess(ci,si){
+  const c=DB.clients[ci]; c.sessions.splice(si,1);
+  c.sessions.forEach((s,i)=>s.num=(c.done||0)+i+1);
+  save();openSessions(ci);renderCards();renderHistory();renderAlerts();
+  showToast('🗑️ אימון נמחק','#888');
+}
+
+// ── CLIENT CRUD ───────────────────────────────────────────────────────────────
+function openAddClient(){
+  editingId=null;
+  document.getElementById('cmTitle').textContent='מתאמן/ת חדש/ה';
+  ['cf_name','cf_payNote','cf_note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cf_pkg').value='24';
+  document.getElementById('cf_freq').value='2×/שבוע';
+  document.getElementById('cf_totalPrice').value='4440';
+  document.getElementById('cf_paid').value='';
+  document.getElementById('cf_color').value='#7B5EA7';
+  document.getElementById('cf_customPkg').style.display='none';
+  document.getElementById('cmDelBtn').style.display='none';
+  document.getElementById('cmSaveBtn').textContent='הוספה';
+  openModal('clientModal');
+}
+
+function openEditClient(i){
+  const c=DB.clients[i]; editingId=c.id;
+  document.getElementById('cmTitle').textContent=`עריכה | ${c.name}`;
+  document.getElementById('cf_name').value=c.name;
+  document.getElementById('cf_pkg').value=c.pkg;
+  document.getElementById('cf_freq').value=c.freq;
+  document.getElementById('cf_totalPrice').value=c.totalPrice||'';
+  document.getElementById('cf_paid').value=c.paid||'';
+  document.getElementById('cf_payNote').value=c.payNote||'';
+  document.getElementById('cf_note').value=c.note||'';
+  document.getElementById('cf_color').value=c.color;
+  document.getElementById('cf_customPkg').style.display='none';
+  document.getElementById('cmDelBtn').style.display='block';
+  document.getElementById('cmSaveBtn').textContent='שמירת שינויים';
+  openModal('clientModal');
+}
+
+function onPkgChange(){
+  const v=document.getElementById('cf_pkg').value;
+  document.getElementById('cf_customPkg').style.display=v==='custom'?'block':'none';
+  const p={'8':1600,'24':4440,'0':450};
+  if(v!=='custom') document.getElementById('cf_totalPrice').value=p[v]||'';
+}
+
+function saveClient(){
+  const name=document.getElementById('cf_name').value.trim();
+  if(!name){showToast('חסר שם!','var(--red)');return;}
+  let pkg=parseInt(document.getElementById('cf_pkg').value)||0;
+  if(document.getElementById('cf_pkg').value==='custom') pkg=parseInt(document.getElementById('cf_customPkg').value)||0;
+  const data={name,freq:document.getElementById('cf_freq').value,pkg,
+    totalPrice:parseFloat(document.getElementById('cf_totalPrice').value)||0,
+    paid:parseFloat(document.getElementById('cf_paid').value)||0,
+    payNote:document.getElementById('cf_payNote').value.trim(),
+    note:document.getElementById('cf_note').value.trim(),
+    color:document.getElementById('cf_color').value};
+  if(editingId!==null){
+    const c=DB.clients.find(x=>x.id===editingId);
+    if(c) Object.assign(c,data);
+    showToast('✅ עודכן','var(--green)');
+  } else {
+    DB.clients.push({id:Date.now(),done:0,sessions:[],...data});
+    showToast(`✅ ${name} נוסף/ה`,'var(--purple)');
+  }
+  save();renderCards();renderAlerts();closeModal('clientModal');
+}
+
+function deleteClient(){
+  if(!confirm('למחוק?')) return;
+  DB.clients=DB.clients.filter(c=>c.id!==editingId);
+  save();renderCards();renderAlerts();closeModal('clientModal');
+  showToast('🗑️ נמחק','#888');
+}
+
+// ── NEW PACKAGE ───────────────────────────────────────────────────────────────
+function openNewPkg(i){
+  currentIdx=i; document.getElementById('npSub').textContent=DB.clients[i].name;
+  document.getElementById('np_pkg').value='24'; document.getElementById('np_totalPrice').value='4440';
+  document.getElementById('np_paid').value=''; document.getElementById('np_payNote').value='';
+  document.getElementById('np_customPkg').style.display='none';
+  openModal('newPkgModal');
+}
+function onNpPkgChange(){
+  const v=document.getElementById('np_pkg').value;
+  document.getElementById('np_customPkg').style.display=v==='custom'?'block':'none';
+  const p={'8':1600,'24':4440}; if(v!=='custom') document.getElementById('np_totalPrice').value=p[v]||'';
+}
+function saveNewPackage(){
+  const c=DB.clients[currentIdx];
+  let pkg=parseInt(document.getElementById('np_pkg').value)||24;
+  if(document.getElementById('np_pkg').value==='custom') pkg=parseInt(document.getElementById('np_customPkg').value)||24;
+  c.done=(c.done||0)+c.sessions.length; c.sessions=[];
+  c.pkg=pkg; c.totalPrice=parseFloat(document.getElementById('np_totalPrice').value)||0;
+  c.paid=parseFloat(document.getElementById('np_paid').value)||0;
+  c.payNote=document.getElementById('np_payNote').value.trim();
+  save();renderCards();renderAlerts();closeModal('newPkgModal');
+  showToast(`📦 חבילה חדשה ל${c.name}`,'var(--green)');
+}
+
+// ── PAYMENT ───────────────────────────────────────────────────────────────────
+function openPayment(i){
+  currentIdx=i; const c=DB.clients[i]; const owed=(c.totalPrice||0)-(c.paid||0);
+  document.getElementById('pmSub').textContent=`${c.name} · נשאר: ₪${owed.toLocaleString()}`;
+  document.getElementById('pm_amount').value=''; document.getElementById('pm_note').value=c.payNote||'';
+  openModal('paymentModal');
+}
+function savePayment(){
+  const c=DB.clients[currentIdx]; const amount=parseFloat(document.getElementById('pm_amount').value)||0;
+  if(!amount){showToast('הכניסי סכום','var(--red)');return;}
+  c.paid=(c.paid||0)+amount; if(c.paid>c.totalPrice) c.paid=c.totalPrice;
+  const note=document.getElementById('pm_note').value.trim(); if(note) c.payNote=note;
+  if(!DB.payments) DB.payments=[];
+  DB.payments.push({clientName:c.name,amount,date:todayISO()});
+  save();renderCards();closeModal('paymentModal');
+  showToast(c.paid>=c.totalPrice?`✅ ${c.name} שילם/ה במלואו!`:`💳 ₪${amount.toLocaleString()} התקבל`,'var(--green)');
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('historyList'); if(!el) return;
+  const all=[];
+  DB.clients.forEach(c=>c.sessions.forEach(s=>all.push({date:s.date,num:s.num,c})));
+  if(!all.length){el.innerHTML='<div class="empty"><div class="ei">📋</div><p>אין אימונים עדיין</p></div>';return;}
+  all.sort((a,b)=>b.date.localeCompare(a.date));
+  const g={};
+  all.forEach(s=>{if(!g[s.date])g[s.date]=[];g[s.date].push(s);});
+  el.innerHTML=Object.entries(g).map(([date,sess])=>{
+    const d=new Date(date+'T12:00:00');
+    return `<div class="hday">
+      <div class="hday-hdr">${D[d.getDay()]} · ${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}</div>
+      ${sess.map(s=>`<div class="hentry">
+        <div style="width:9px;height:9px;border-radius:50%;background:${s.c.color};flex-shrink:0"></div>
+        <div style="flex:1;font-weight:600">${s.c.name}</div>
+        <div style="font-size:11px;color:var(--ink3)">אימון ${s.num}${s.c.pkg>0?' / '+s.c.pkg:''}</div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ── ALERTS ────────────────────────────────────────────────────────────────────
+function renderAlerts(){
+  const el=document.getElementById('alertsList'); if(!el) return;
+  const al=DB.clients.filter(c=>c.pkg>0).map(c=>({...c,td:tdone(c),rem:c.pkg-tdone(c)})).filter(c=>c.rem<=6).sort((a,b)=>a.rem-b.rem);
+  if(!al.length){el.innerHTML='<div class="empty"><div class="ei">🎉</div><p>הכל בסדר!</p></div>';return;}
+  el.innerHTML=al.map(c=>{
+    const e=c.rem>0?est(c):null;
+    return `<div class="al-card ${c.rem<=3?'d':'w'}">
+      <div style="font-size:22px">${c.rem<=3?'🚨':'⚠️'}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700">${c.name}</div>
+        <div style="font-size:12px;color:var(--ink3)">${c.freq} · ${c.td}/${c.pkg}${e?' · צפי: '+e:''}</div>
+      </div>
+      <div style="margin-right:auto;text-align:center">
+        <div style="font-size:26px;font-weight:900;color:${c.rem<=3?'var(--red)':'var(--amber)'}">${c.rem}</div>
+        <div style="font-size:10px;color:var(--ink3)">נשאר</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── LEADS ─────────────────────────────────────────────────────────────────────
+function saveLead(){
+  const name=document.getElementById('leadName').value.trim();
+  if(!name){showToast('חסר שם!','var(--red)');return;}
+  if(!DB.leads) DB.leads=[];
+  DB.leads.push({id:Date.now(),name,phone:document.getElementById('leadPhone').value.trim(),
+    source:document.getElementById('leadSource').value,status:document.getElementById('leadStatus').value,
+    note:document.getElementById('leadNote').value.trim(),date:todayISO()});
+  save();closeModal('addLeadModal');renderLeads();showToast(`✅ ${name} נוספ/ה`,'var(--purple)');
+}
+function updateLeadStatus(id,s){const l=DB.leads.find(x=>x.id===id);if(l){l.status=s;save();renderLeads();}}
+function deleteLead(id){DB.leads=DB.leads.filter(l=>l.id!==id);save();renderLeads();showToast('🗑️ נמחק','#888');}
+function renderLeads(){
+  const el=document.getElementById('leadsList'); if(!el) return;
+  if(!DB.leads||!DB.leads.length){el.innerHTML='<div class="empty"><div class="ei">📥</div><p>אין פניות</p></div>';return;}
+  const sc={'ליד חדש':'var(--purple)','נקבע היכרות':'var(--amber)','שילם היכרות':'var(--amber)','סגר חבילה':'var(--green)','לא ממשיך':'#aaa'};
+  el.innerHTML=[...DB.leads].sort((a,b)=>b.id-a.id).map(l=>`
+    <div style="background:#fff;border-radius:var(--r-md);padding:13px 15px;margin-bottom:9px;box-shadow:var(--sh-sm)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="font-weight:700;font-size:14px">${l.name}</div>
+        <button onclick="deleteLead(${l.id})" style="background:none;color:#ccc;font-size:15px;padding:2px 6px">✕</button>
+      </div>
+      ${l.phone?`<div style="font-size:12px;color:var(--ink3);margin-bottom:3px">📞 ${l.phone}</div>`:''}
+      ${l.source?`<div style="font-size:12px;color:var(--ink3);margin-bottom:3px">📣 ${l.source}</div>`:''}
+      ${l.note?`<div style="font-size:12px;color:var(--ink2);margin-bottom:6px;font-style:italic">${l.note}</div>`:''}
+      <div style="display:flex;align-items:center;gap:7px;margin-top:7px">
+        <span style="font-size:11px;font-weight:600;color:${sc[l.status]||'var(--purple)'};background:${sc[l.status]||'var(--purple)'}22;padding:3px 9px;border-radius:20px">${l.status}</span>
+        <select onchange="updateLeadStatus(${l.id},this.value)" style="flex:1;padding:4px 7px;border-radius:20px;border:1.5px solid #e0daea;font-family:'Heebo',sans-serif;font-size:11px;background:#fff;direction:rtl">
+          ${['ליד חדש','נקבע היכרות','שילם היכרות','סגר חבילה','לא ממשיך'].map(s=>`<option ${l.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>`).join('');
+}
+
+// ── REPORT ────────────────────────────────────────────────────────────────────
+function renderReport(){
+  const now=new Date(), im=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`, ms=`${M[now.getMonth()]} ${now.getFullYear()}`;
+  let ts=0,tr=0,to=0;
+  const rows=DB.clients.map(c=>{
+    const done=tdone(c), thisM=c.sessions.filter(s=>s.date.startsWith(im)).length;
+    const rem=c.pkg>0?c.pkg-done:null, owed=(c.totalPrice||0)-(c.paid||0);
+    const mRev=(DB.payments||[]).filter(p=>p.clientName===c.name&&p.date.startsWith(im)).reduce((s,p)=>s+p.amount,0);
+    ts+=thisM;tr+=mRev;to+=owed;
+    return {c,done,thisM,rem,owed,mRev,status:rem!==null&&rem<=3?'🔴 מסיים':rem===0?'🚨 נגמר':c.note?`⚠️`:' 🟢 פעיל'};
+  });
+  const fin=rows.filter(r=>r.rem!==null&&r.rem<=6);
+  document.getElementById('reportContent').innerHTML=`
+    <div class="rc">
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px">📊 ${ms}</div>
+      <div class="sg">
+        <div class="stat"><div class="n">${ts}</div><div class="l">אימונים</div></div>
+        <div class="stat" style="background:var(--green-l)"><div class="n" style="color:var(--green)">₪${tr.toLocaleString()}</div><div class="l">נכנס</div></div>
+        <div class="stat" style="background:var(--red-l)"><div class="n" style="color:var(--red)">₪${to.toLocaleString()}</div><div class="l">חובות</div></div>
+      </div>
+      ${fin.length?`<div style="background:var(--amber-l);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#C07D00;margin-bottom:6px">⚠️ מסיימים בקרוב</div>
+        ${fin.map(r=>`<div style="font-size:12px;color:var(--ink2);margin-bottom:3px">• ${r.c.name} – נשארו ${r.rem}</div>`).join('')}
+      </div>`:''}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;direction:rtl">
+          <thead><tr style="background:var(--purple);color:#fff">
+            <th style="padding:8px 10px;text-align:right">שם</th>
+            <th style="padding:8px 6px;text-align:center">החודש</th>
+            <th style="padding:8px 6px;text-align:center">נכנס</th>
+            <th style="padding:8px 6px;text-align:center">חוב</th>
+            <th style="padding:8px 6px;text-align:center">סטטוס</th>
+          </tr></thead>
+          <tbody>${rows.map((r,i)=>`<tr style="background:${i%2?'var(--bg)':'#fff'}">
+            <td style="padding:8px 10px;font-weight:600">${r.c.name}</td>
+            <td style="padding:8px 6px;text-align:center">${r.thisM}</td>
+            <td style="padding:8px 6px;text-align:center;color:var(--green)">${r.mRev?'₪'+r.mRev.toLocaleString():'—'}</td>
+            <td style="padding:8px 6px;text-align:center;color:${r.owed>0?'var(--red)':'var(--green)'}">${r.owed>0?'₪'+r.owed.toLocaleString():'✓'}</td>
+            <td style="padding:8px 6px;text-align:center;font-size:11px">${r.status}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function exportMonthlyReport(){
+  const now=new Date(), im=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`, ms=`${M[now.getMonth()]} ${now.getFullYear()}`;
+  const data=[['דוח חודשי IA TrainLog','','','',''],['חודש:',ms,'','',''],['','','','',''],
+    ['שם','אימונים החודש','נכנס החודש','חוב פתוח','סטטוס']];
+  let ts=0,tr=0;
+  DB.clients.forEach(c=>{
+    const done=tdone(c), tm=c.sessions.filter(s=>s.date.startsWith(im)).length;
+    const rem=c.pkg>0?c.pkg-done:null, owed=(c.totalPrice||0)-(c.paid||0);
+    const mr=(DB.payments||[]).filter(p=>p.clientName===c.name&&p.date.startsWith(im)).reduce((s,p)=>s+p.amount,0);
+    ts+=tm;tr+=mr;
+    data.push([c.name,tm,mr||0,owed,rem!==null&&rem<=3?'מסיים בקרוב':rem===0?'נגמר':'פעיל']);
+  });
+  data.push(['','','','',''],['סה"כ',ts,tr,'','']);
+  const s2=[['שם','תאריך','יום','מספר אימון']];
+  DB.clients.forEach(c=>c.sessions.forEach(s=>{const d=new Date(s.date+'T12:00:00');s2.push([c.name,fmtS(s.date),D[d.getDay()],s.num]);}));
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.aoa_to_sheet(data); ws1['!cols']=[{wch:22},{wch:12},{wch:14},{wch:12},{wch:14}];
+  const ws2=XLSX.utils.aoa_to_sheet(s2); ws2['!cols']=[{wch:22},{wch:12},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws1,'סיכום חודשי'); XLSX.utils.book_append_sheet(wb,ws2,'כל האימונים');
+  XLSX.writeFile(wb,`IA_TrainLog_${ms}.xlsx`); showToast('📥 הדוח יורד...','var(--green)');
+}
+
+function sendMonthlyEmail(){
+  const now=new Date(), im=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`, ms=`${M[now.getMonth()]} ${now.getFullYear()}`;
+  let msg=`📊 דוח חודשי | ${ms}\n\n`,ts=0,tr=0,to=0;
+  DB.clients.forEach(c=>{
+    const done=tdone(c), tm=c.sessions.filter(s=>s.date.startsWith(im)).length;
+    const rem=c.pkg>0?c.pkg-done:null, owed=(c.totalPrice||0)-(c.paid||0);
+    const mr=(DB.payments||[]).filter(p=>p.clientName===c.name&&p.date.startsWith(im)).reduce((s,p)=>s+p.amount,0);
+    ts+=tm;tr+=mr;to+=owed;
+    msg+=`• ${c.name}: ${tm} אימונים${rem!==null?' | נשאר '+rem:''}${owed>0?' | חוב ₪'+owed:''}\n`;
+  });
+  msg+=`\n✅ סה"כ אימונים: ${ts}\n💰 נכנס: ₪${tr.toLocaleString()}\n⚠️ חובות: ₪${to.toLocaleString()}`;
+  showToast('📧 שולח...','var(--amber)');
+  emailjs.send('ia_business_mail','template_r51ff45',{report_type:'דוח חודשי',date:`${now.getDate()}.${now.getMonth()+1}.${now.getFullYear()}`,message:msg,name:'IA Business'})
+    .then(()=>showToast('✅ נשלח!','var(--green)'))
+    .catch(()=>showToast('❌ שגיאה בשליחה','var(--red)'));
+}
+
+// ── BACKUP ────────────────────────────────────────────────────────────────────
+function exportBackup(){
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download=`ia_backup_${todayISO()}.json`; a.click();
+  showToast('💾 גיבוי יורד...','var(--purple)');
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(t,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['log','history','alerts','leads','report'].forEach(n=>{
+    document.getElementById('tab-'+n).style.display=n===t?'block':'none';
+  });
+  if(t==='history')renderHistory();
+  if(t==='alerts')renderAlerts();
+  if(t==='leads')renderLeads();
+  if(t==='report')renderReport();
+}
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+
+// ── DATE PICKER ───────────────────────────────────────────────────────────────
+function openDatePicker(){document.getElementById('dpInput').value=toISO(selectedDate);document.getElementById('dpWrap').classList.add('on');}
+function closeDatePicker(){document.getElementById('dpWrap').classList.remove('on');}
+function confirmDate(){
+  const v=document.getElementById('dpInput').value; if(!v)return;
+  selectedDate=new Date(v+'T12:00:00'); closeDatePicker(); renderCards();
+  showToast(`📅 ${fmtDate(selectedDate)}`,'var(--purple)');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg,color){
+  const w=document.getElementById('toastWrap'), t=document.createElement('div');
+  t.className='toast'; if(color)t.style.borderRight=`4px solid ${color}`; t.textContent=msg; w.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),250);},2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderCards();
+renderAlerts();
+</script>
+</body>
+</html>
